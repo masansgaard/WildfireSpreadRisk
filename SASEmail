@@ -1,0 +1,29 @@
+%web_drop_table(WORK.IMPORT);
+
+FILENAME REFFILE '/folders/myfolders/forestFiresWithSpreadRisk.csv';
+PROC IMPORT DATAFILE=REFFILE
+	DBMS=CSV
+	OUT=WORK.FIREFINAL;
+	GETNAMES=YES;
+RUN;
+
+PROC CONTENTS DATA=WORK.IMPORT; RUN;
+
+%web_open_table(WORK.IMPORT);
+
+
+proc sql;
+create table work.FIRE_FINAL_REMOVE_TOP3 as 
+select * from work.firefinal where area<150;
+quit;
+
+ods graphics / reset width=6.4in height=4.8in imagemap;
+
+proc sgplot data=WORK.FIRE_FINAL_REMOVE_TOP3;
+	reg x=Spread_Score y=area / nomarkers;
+	scatter x=Spread_Score y=area /;
+	xaxis grid;
+	yaxis grid;
+run;
+
+ods graphics / reset;
