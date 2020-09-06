@@ -1,0 +1,73 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
+from sklearn.model_selection import train_test_split
+
+oo=pd.read_csv(r'C:\Users\masan\Documents\School\MIS581\forestfires.csv')
+ffmc=oo.loc[(oo["area"]>0) & (oo["area"]<500), "FFMC"]
+dc=oo.loc[(oo["area"]>0) & (oo["area"]<500), "DC"]
+isi=oo.loc[(oo["area"]>0) & (oo["area"]<500), "ISI"]
+dmc=oo.loc[(oo["area"]>0) & (oo["area"]<500), "DMC"]
+area=oo.loc[(oo["area"]>0) & (oo["area"]<500), "area"]
+temp=oo.loc[(oo["area"]>0) & (oo["area"]<500), "temp"]
+
+FFMC_r=np.corrcoef(ffmc,area)[0][1]
+DMC_r=np.corrcoef(dmc,area)[0][1]
+DC_r=np.corrcoef(dc,area)[0][1]
+ISI_r=np.corrcoef(isi,area)[0][1]
+total=ISI_r+DC_r+DMC_r+FFMC_r
+temp_r=np.corrcoef(temp,area)[0][1]
+
+print("R Scores")
+print("")
+print("FFMC r")
+print(FFMC_r)
+print("DMC r")
+print(DMC_r)
+print("DC r")
+print(DC_r)
+print("ISI r")
+print(ISI_r)
+print("Temp t")
+print(temp_r)
+print("")
+print("")
+print("Weight Scores")
+print("")
+print("FFMC Weight")
+FFMC_weight= FFMC_r/total
+print(FFMC_weight)
+print("DMC Weight")
+DMC_weight= DMC_r/total
+print(DMC_weight)
+print("DC Weight")
+DC_weight=DC_r/total
+print(DC_weight)
+print("ISI Weight")
+ISI_weight=ISI_r/total
+print(ISI_weight)
+#print("ISI will not be considered in the final value due to it's low correlation score related to the other candidates.")
+#
+#During weight testing, I found that removing ISI improved the overall score.
+
+
+#Here is where i messed with weights manually to find the best fit and seek out 
+#which underlying input factors are contributing to the largest impact in the score.
+ffmc_input_value=(oo.FFMC/ffmc.max())*(FFMC_weight)
+dmc_input_value=(oo.DMC/dmc.max())*(DMC_weight)
+dc_input_value=(oo.DC/dc.max())*(DC_weight)
+isi_input_value=(oo.ISI/isi.max())*ISI_weight
+oo['Spread_Score'] = ffmc_input_value+dmc_input_value+dmc_input_value+dc_input_value+isi_input_value
+
+
+ss = oo.loc[(oo["area"]>0) & (oo["area"]<500), "Spread_Score"]
+print("")
+                      
+print("New Spread Score Correlation Score")
+
+Spread_Score_r=np.corrcoef(ss,area)[0][1]
+print(Spread_Score_r)
+
+
+oo.to_csv(r'C:\Users\masan\Documents\School\MIS581\forestFiresWithSpreadRisk.csv')
